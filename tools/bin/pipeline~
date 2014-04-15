@@ -1,0 +1,2 @@
+#!/bin/sh
+python $RESEARCH_HOME/tools/src/pipeline/process-util.py $*

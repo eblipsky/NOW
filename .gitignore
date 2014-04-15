@@ -1,0 +1,9 @@
+.hg
+tmp/*
+ref/*
+data/*
+log/*
+tools/src/bwa*
+tools/src/jdk*
+tools/src/redis*
+

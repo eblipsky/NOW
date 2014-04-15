@@ -1,0 +1,2 @@
+#!/bin/sh
+redis-server --dir "/fs-research01/tromp/db" --dbfilename "redis.rdb" 2>&1 &

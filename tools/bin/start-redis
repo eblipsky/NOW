@@ -1,0 +1,2 @@
+#!/bin/sh
+redis-server --dir "$RESEARCH_HOME/db" --dbfilename "redis.rdb" 2>&1 &
