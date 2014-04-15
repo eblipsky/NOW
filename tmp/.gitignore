@@ -1,0 +1,4 @@
+# Ignore everything in this directory because the amount data is huge!
+*
+# Except this file
+!.gitignore
