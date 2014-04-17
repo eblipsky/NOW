@@ -11,17 +11,21 @@ import socket
 import redis
 import json
 from subprocess import Popen, PIPE
+from couchdbkit import *
 
 # this is user set
 BASE_DIR = '/opt/NOW'
 
-HAS_NODES = False
+HAS_NODES = False #false is for single computer environment
 NODE_BASE_NAME = socket.gethostname()
 NODE_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
 REDIS_DB = 0
+
+COUCHDB_HOST = "http://localhost:5984/"
+COUCHDB_DB = "pipeline"
 
 UG_NCT = 4
 UG_NT = 15
