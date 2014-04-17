@@ -11,7 +11,9 @@ The following can be installed with yum:
 * Apache
 * PHP
 * Python
-* CouchDB
+* Redis (http://redis.io)
+* CouchDB (http://couchdb.apache.org/)
+* CouchDBKit (http://couchdbkit.org/)
 
 ## Installation
 #### Get NOW
