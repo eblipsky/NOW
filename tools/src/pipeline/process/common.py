@@ -2,6 +2,33 @@
 
 from settings import *
 
+## CouchDB Classes ##############################################
+
+class Log(Document):
+    queue = StringProperty()
+    node = StringProperty()
+    start = StringProperty()
+    end = StringProperty()
+    total = StringProperty()
+    fq = StringProperty()
+
+class Pipeline(Document):
+    name = StringProperty()
+
+class Queue(Document):
+    error = StringProperty()
+    validchk = StringProperty(default="check_default")
+    file_cnt = StringProperty(default="MAX_CPU-1")
+    active = StringProperty(default="false")
+    desc = StringProperty()
+    pipeline = StringProperty()
+    name = StringProperty()
+    cmd = StringProperty()
+    next = StringProperty()
+    cmd_type = StringProperty(default="local")
+
+## Common functions ##############################################
+
 ##################################################################
 def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
@@ -140,14 +167,12 @@ def node_start_all():
             node_start(NODE_IDS[i])
     else:
         node_start(0)
-        
 
 ##################################################################
 def isNodeRunning(n):
     node = NODE_BASE_NAME + str(n)
 ##################################################################
 def node_start(n):
-
     if HAS_NODES:
 
         if n not in NODE_IDS:
@@ -328,6 +353,35 @@ def cleanup():
     r.hdel(HOSTNAME, 'stage')
     r.hdel(HOSTNAME, 'start')
     r.hdel(HOSTNAME, 'pipeline')
+
+##################################################################
+def set_file_info_new(fq, logfilename, stage, cmd, start, end, err=0):
+
+    if stage is None:
+        stage == "None"
+    if cmd is None:
+        cmd = "None"
+
+    server = Server(uri=COUCHDB_HOST)
+    db = server.get_or_create_db(COUCHDB_DB)
+    Log.set_db(db)
+    logEntry = None
+
+    if type(err) == str:
+        logEntry = Log(stage=stage, cmd=cmd, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total=err, fq=fq)
+    else:
+        if err != 0:
+            logEntry = Log(stage=stage, cmd=cmd, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total="!!ERROR!!", fq=fq)
+        else:
+            h, remain = divmod((end-start).seconds, 3600)
+            m, s = divmod(remain, 60)
+            t = str(h)+':'+str(m)+':'+str(s)
+            logEntry = Log(stage=stage, cmd=cmd, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total=t, fq=fq)
+
+    logEntry.save()
+    if logfilename:
+        with open(logfilename, "r") as myfile:
+            logEntry.put_attachment(myfile, "logfile")
 
 ##################################################################
 def import_demux(stage, fq):

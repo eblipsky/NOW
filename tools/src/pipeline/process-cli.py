@@ -3,7 +3,7 @@ import signal
 
 DEBUG = False
 
-CLIENT_VER = '0.0.16'
+CLIENT_VER = '0.0.17'
 
 r = None
 STAGE = ''
@@ -134,7 +134,8 @@ def generic_stage(pipeline, queue):
     # if we have files but are inactive push them along to next queue
     if ACTIVE != 'active':
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-            set_file_info(qfile, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
+            #set_file_info(qfile, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
+            set_file_info_new(qfile, None, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'skipped')
             r.rpush(STAGE_NEXT, qfile)
         r.ltrim(HOSTNAME+'_files', 1, 0)
@@ -162,6 +163,7 @@ def generic_stage(pipeline, queue):
         # execute all commands
         processes = []
         logfiles = []
+        logfilenames = []
         for idx, cmd in enumerate(commands):
 
             logdir = BASE_DIR+'/log/'+HOSTNAME+'/'+STAGE
@@ -172,6 +174,7 @@ def generic_stage(pipeline, queue):
 
             logfile = open(logfilename, 'w')
             logfiles.append(logfile)
+            logfilenames.append(logfilename)
 
             # todo: possibly print data for header of log file, or push log to couch after exit
 
@@ -183,14 +186,14 @@ def generic_stage(pipeline, queue):
 
         for logfile in logfiles:
             logfile.close()
-            # todo: attach log file in couchdb
 
         set_cmd()
 
         # when they are all done move to next or err queue
         for i in range(len(processes)):
             f = r.lindex(HOSTNAME+'_files', i)
-            set_file_info(f, STAGE, commands[i], start, datetime.now(), processes[i].returncode)
+            #set_file_info(f, STAGE, commands[i], start, datetime.now(), processes[i].returncode)
+            set_file_info_new(f, logfilenames[i], STAGE, commands[i], start, datetime.now(), processes[i].returncode)
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'queue done')
             if processes[i].returncode == 0:
                 if output_type == 'single':
@@ -268,7 +271,8 @@ def anounce():
 #############################################################
 def signal_handler(signal, frame):
     for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-        set_file_info(qfile, STAGE, start, datetime.now(), '!!REVERT!!')
+        #set_file_info(qfile, STAGE, start, datetime.now(), '!!REVERT!!')
+        set_file_info_new(qfile, None, STAGE, start, datetime.now(), '!!REVERT!!')
         r.rpush(STAGE, qfile)
     cleanup()
     sys.exit(0)
@@ -297,6 +301,7 @@ if __name__ == '__main__':
         sys.stderr.write(traceback.format_exc())
         sys.stderr.write('=================================\n')
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-            set_file_info(qfile, STAGE, '', start, datetime.now(), '!!REVERT!!')
+            #set_file_info(qfile, STAGE, '', start, datetime.now(), '!!REVERT!!')
+            set_file_info(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
             r.rpush(STAGE, qfile)
         r.hset(HOSTNAME, 'stage', 'ERROR')
