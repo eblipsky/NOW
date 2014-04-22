@@ -25,7 +25,7 @@ def Main():
     elif sys.argv[1] == 'install':
         server = Server(uri=COUCHDB_HOST)
         db = server.get_or_create_db(COUCHDB_DB)
-        loader = FileSystemDocsLoader('/opt/NOW/tools/src/pipeline/couchdb/_design')
+        loader = FileSystemDocsLoader(BASE_DIR+'/tools/src/pipeline/couchdb/_design')
         loader.sync(db, verbose=True)
     elif sys.argv[1] == 'parsecmd':
         print cmd_parse(sys.argv[2:], 'abc_xyz')
