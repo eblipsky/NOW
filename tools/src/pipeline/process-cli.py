@@ -302,6 +302,6 @@ if __name__ == '__main__':
         sys.stderr.write('=================================\n')
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
             #set_file_info(qfile, STAGE, '', start, datetime.now(), '!!REVERT!!')
-            set_file_info(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
+            set_file_info_new(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
             r.rpush(STAGE, qfile)
         r.hset(HOSTNAME, 'stage', 'ERROR')
