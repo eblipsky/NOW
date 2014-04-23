@@ -255,46 +255,6 @@ def set_cmd(cmd=[]):
     r.set('cmd_'+HOSTNAME, cmd)
 
 ##################################################################
-def set_file_info(fq, stage, cmd, start, end, err=0):
-    r = get_client()
-    tmp = r.get('fq_time_' + fq)
-
-    try:
-        tmp = json.loads(tmp)
-    except Exception as ex:
-        # no json to load init empty list
-        tmp = [] 
-
-    if stage is None:
-        stage == "None"
-    if cmd is None:
-        cmd = "None"
-
-    if type(err) == str:
-
-        entry = {"stage": stage, "cmd": cmd, "node": HOSTNAME, "start": start.strftime(DATE_FMT), "end": end.strftime(DATE_FMT), "total": err}
-        tmp.append(entry)
-        r.set('fq_time_' + fq, json.dumps(tmp))
-
-    else:
-        if err != 0:
-        
-            entry = {"stage": stage, "cmd": cmd, "node": HOSTNAME, "start": start.strftime(DATE_FMT), "end": end.strftime(DATE_FMT), "total": "!!ERROR!!"}
-            tmp.append(entry)
-            r.set('fq_time_' + fq, json.dumps(tmp))
-             
-            #todo: scrape tail -50 from log and save it to couch 
-
-        else:
-            h, remain = divmod((end-start).seconds, 3600)
-            m, s = divmod(remain, 60)
-            t = str(h)+':'+str(m)+':'+str(s)
-            
-            entry = {"stage": stage, "cmd": cmd, "node": HOSTNAME, "start": start.strftime(DATE_FMT), "end": end.strftime(DATE_FMT), "total": t}
-            tmp.append(entry)
-            r.set('fq_time_' + fq, json.dumps(tmp))
-
-##################################################################
 def set_batch_info(fq, host, queue, pipeline, status):
     r = get_client()
 
@@ -355,7 +315,7 @@ def cleanup():
     r.hdel(HOSTNAME, 'pipeline')
 
 ##################################################################
-def set_file_info_new(fq, logfilename, stage, cmd, start, end, err=0):
+def set_file_info(fq, logfilename, stage, cmd, start, end, err=0):
 
     if stage is None:
         stage == "None"
