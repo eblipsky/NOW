@@ -134,8 +134,7 @@ def generic_stage(pipeline, queue):
     # if we have files but are inactive push them along to next queue
     if ACTIVE != 'active':
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-            #set_file_info(qfile, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
-            set_file_info_new(qfile, None, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
+            set_file_info(qfile, None, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'skipped')
             r.rpush(STAGE_NEXT, qfile)
         r.ltrim(HOSTNAME+'_files', 1, 0)
@@ -192,8 +191,7 @@ def generic_stage(pipeline, queue):
         # when they are all done move to next or err queue
         for i in range(len(processes)):
             f = r.lindex(HOSTNAME+'_files', i)
-            #set_file_info(f, STAGE, commands[i], start, datetime.now(), processes[i].returncode)
-            set_file_info_new(f, logfilenames[i], STAGE, commands[i], start, datetime.now(), processes[i].returncode)
+            set_file_info(f, logfilenames[i], STAGE, commands[i], start, datetime.now(), processes[i].returncode)
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'queue done')
             if processes[i].returncode == 0:
                 if output_type == 'single':
@@ -301,7 +299,6 @@ if __name__ == '__main__':
         sys.stderr.write(traceback.format_exc())
         sys.stderr.write('=================================\n')
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-            #set_file_info(qfile, STAGE, '', start, datetime.now(), '!!REVERT!!')
-            set_file_info_new(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
+            set_file_info(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
             r.rpush(STAGE, qfile)
         r.hset(HOSTNAME, 'stage', 'ERROR')
