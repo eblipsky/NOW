@@ -315,6 +315,18 @@ def cleanup():
     r.hdel(HOSTNAME, 'pipeline')
 
 ##################################################################
+def prune_log():
+
+    server = Server(uri=COUCHDB_HOST)
+    db = server.get_or_create_db(COUCHDB_DB)
+    Log.set_db(db)
+
+    logs = Log.view('Logs/large')
+
+    for logEntry in logs:
+        print logEntry.doc_type
+
+##################################################################
 def set_file_info(fq, logfilename, stage, cmd, start, end, err=0):
 
     if stage is None:
