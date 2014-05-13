@@ -352,8 +352,12 @@ def set_file_info(fq, logfilename, stage, cmd, start, end, err=0):
 
     logEntry.save()
     if logfilename:
-        with open(logfilename, "r") as myfile:
-            logEntry.put_attachment(myfile, "logfile")
+        finfo = os.stat(logfilename)
+        if finfo.st_size < 1000000:
+            with open(logfilename, "r") as myfile:
+                logEntry.put_attachment(myfile, "logfile")
+        else:
+            logEntry.put_attachment(logfilename, "logfile")            
 
 ##################################################################
 def import_demux(stage, fq):
