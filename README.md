@@ -11,11 +11,14 @@ The following can be installed with yum:
 * Apache
 * PHP
 * Python
-* Redis (http://redis.io)
-* CouchDB (http://couchdb.apache.org/)
-* CouchDBKit (http://couchdbkit.org/)
+* [Redis](http://redis.io)
+* [CouchDB](http://couchdb.apache.org/)
+* [CouchDBKit](http://couchdbkit.org/)
 
 ## Installation
+
+* If you prefer to setup a test VM here are the [instructions](https://github.com/eblipsky/NOW/wiki/NOW_VM)
+
 #### Get NOW
 ```Shell
 cd /opt
