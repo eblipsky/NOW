@@ -104,6 +104,9 @@ def generic_stage(pipeline, queue):
         QCMD = r.get(pipeline+'_queue_cmd_'+queue)
         VCMD = r.get(pipeline+'_queue_cmdver_'+queue)
 
+    if VCMD is None:
+        VCMD = ""
+
     # if inactive do nothing for start and none queue
     if ACTIVE != 'active':
         if STAGE == pipeline+'_queue_start':
