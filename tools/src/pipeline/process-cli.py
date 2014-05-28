@@ -99,7 +99,7 @@ def generic_stage(pipeline, queue):
     if r.get(pipeline+'_queue_cmdtype_'+queue) == 'template':
         tmplqueue = r.get(pipeline+'_queue_template_'+queue)
         QCMD = r.hget('tmplcmd', tmplqueue)
-        VCMD = r.get('CommandTemplates_queue_cmdver_'+tmplqueue.split('_'))
+        VCMD = r.get('CommandTemplates_queue_cmdver_'+tmplqueue.split('_')[-1])
     else:
         QCMD = r.get(pipeline+'_queue_cmd_'+queue)
         VCMD = r.get(pipeline+'_queue_cmdver_'+queue)
