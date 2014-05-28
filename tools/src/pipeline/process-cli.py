@@ -96,6 +96,7 @@ def generic_stage(pipeline, queue):
         output_type = 'single'
 
     # check if we need to pull the template command
+    VCMD = r.get(pipeline+'_queue_cmdver_'+queue)
     if r.get(pipeline+'_queue_cmdtype_'+queue) == 'template':
         QCMD = r.hget('tmplcmd', r.get(pipeline+'_queue_template_'+queue))
     else:
@@ -134,7 +135,7 @@ def generic_stage(pipeline, queue):
     # if we have files but are inactive push them along to next queue
     if ACTIVE != 'active':
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-            set_file_info(qfile, None, STAGE, '', start, datetime.now(), '!!SKIPPED!!')
+            set_file_info(qfile, None, STAGE, '', '', start, datetime.now(), '!!SKIPPED!!')
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'skipped')
             r.rpush(STAGE_NEXT, qfile)
         r.ltrim(HOSTNAME+'_files', 1, 0)
@@ -158,6 +159,12 @@ def generic_stage(pipeline, queue):
 
         set_cmd(commands)
         set_node_info(STAGE, start)
+
+        # execute version command
+        cmdver = ""
+        if len(VCMD) != 0:
+            vp = Popen(VCMD, shell=True, stdout=PIPE)
+            cmdver, err = vp.communicate()
 
         # execute all commands
         processes = []
@@ -191,7 +198,7 @@ def generic_stage(pipeline, queue):
         # when they are all done move to next or err queue
         for i in range(len(processes)):
             f = r.lindex(HOSTNAME+'_files', i)
-            set_file_info(f, logfilenames[i], STAGE, commands[i], start, datetime.now(), processes[i].returncode)
+            set_file_info(f, logfilenames[i], STAGE, cmdver, commands[i], start, datetime.now(), processes[i].returncode)
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'queue done')
             if processes[i].returncode == 0:
                 if output_type == 'single':
@@ -270,7 +277,7 @@ def anounce():
 def signal_handler(signal, frame):
     for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
         #set_file_info(qfile, STAGE, start, datetime.now(), '!!REVERT!!')
-        set_file_info_new(qfile, None, STAGE, start, datetime.now(), '!!REVERT!!')
+        set_file_info_new(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
         r.rpush(STAGE, qfile)
     cleanup()
     sys.exit(0)
@@ -299,6 +306,6 @@ if __name__ == '__main__':
         sys.stderr.write(traceback.format_exc())
         sys.stderr.write('=================================\n')
         for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-            set_file_info(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
+            set_file_info(qfile, None, STAGE, '', '', start, datetime.now(), '!!REVERT!!')
             r.rpush(STAGE, qfile)
         r.hset(HOSTNAME, 'stage', 'ERROR')

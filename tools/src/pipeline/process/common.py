@@ -327,7 +327,7 @@ def prune_log():
         print logEntry.doc_type
 
 ##################################################################
-def set_file_info(fq, logfilename, stage, cmd, start, end, err=0):
+def set_file_info(fq, logfilename, stage, cmdver, cmd, start, end, err=0):
 
     if stage is None:
         stage == "None"
@@ -340,15 +340,15 @@ def set_file_info(fq, logfilename, stage, cmd, start, end, err=0):
     logEntry = None
 
     if type(err) == str:
-        logEntry = Log(stage=stage, cmd=cmd, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total=err, fq=fq)
+        logEntry = Log(stage=stage, cmd=cmd, cmdver=cmdver, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total=err, fq=fq)
     else:
         if err != 0:
-            logEntry = Log(stage=stage, cmd=cmd, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total="!!ERROR!!", fq=fq)
+            logEntry = Log(stage=stage, cmd=cmd, cmdver=cmdver, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total="!!ERROR!!", fq=fq)
         else:
             h, remain = divmod((end-start).seconds, 3600)
             m, s = divmod(remain, 60)
             t = str(h)+':'+str(m)+':'+str(s)
-            logEntry = Log(stage=stage, cmd=cmd, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total=t, fq=fq)
+            logEntry = Log(stage=stage, cmd=cmd, cmdver=cmdver, node=HOSTNAME, start=start.strftime(DATE_FMT), end=end.strftime(DATE_FMT), total=t, fq=fq)
 
     logEntry.save()
     if logfilename:
