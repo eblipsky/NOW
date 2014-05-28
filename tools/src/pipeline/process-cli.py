@@ -96,11 +96,12 @@ def generic_stage(pipeline, queue):
         output_type = 'single'
 
     # check if we need to pull the template command
-    VCMD = r.get(pipeline+'_queue_cmdver_'+queue)
     if r.get(pipeline+'_queue_cmdtype_'+queue) == 'template':
         QCMD = r.hget('tmplcmd', r.get(pipeline+'_queue_template_'+queue))
+        VCMD = r.get('CommandTemplates_queue_cmdver_'+queue)
     else:
         QCMD = r.get(pipeline+'_queue_cmd_'+queue)
+        VCMD = r.get(pipeline+'_queue_cmdver_'+queue)
 
     # if inactive do nothing for start and none queue
     if ACTIVE != 'active':
