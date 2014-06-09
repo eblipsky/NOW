@@ -3,7 +3,7 @@ import signal
 
 DEBUG = False
 
-CLIENT_VER = '0.0.17'
+CLIENT_VER = '0.0.20'
 
 r = None
 STAGE = ''
@@ -126,10 +126,26 @@ def generic_stage(pipeline, queue):
     set_node_info('Checking '+pipeline+'...', start)
 
     # grab some files
+    priorities = getPriorities(pipeline)
     qfile = ''
     while qfile is not None and r.llen(HOSTNAME+'_files') < int(STAGE_CPU):
+        # first try to pop high priority files
+        qfile = None
+        for hpf in priorities['high']:
+            fnd = r.lrem(STAGE, hpf)
+            if fnd == 1:
+                qfile = hpf
+                #sys.stderr.write('====== pri-grabbing '+str(qfile)+' from '+str(STAGE)+'=======\n')
+                r.rpush(HOSTNAME+'_files', qfile)
+                set_batch_info(qfile, HOSTNAME, queue, pipeline, 'processing')
+
+    qfile = ''
+    while qfile is not None and r.llen(HOSTNAME+'_files') < int(STAGE_CPU):
+        # first try to pop high priority files
+        qfile = None
         qfile = r.lpop(STAGE)
         if qfile is not None:
+            #sys.stderr.write('====== nrm-grabbing '+str(qfile)+' from '+str(STAGE)+'=======\n')
             r.rpush(HOSTNAME+'_files', qfile)
             set_batch_info(qfile, HOSTNAME, queue, pipeline, 'processing')
 
@@ -254,24 +270,49 @@ def process_pipeline():
 
     if pipeline == "Auto":
         # this is where we need to lookup and loop through pipelies and their queues
+        # do something better than random here
         pipeline = r.srandmember('pipeline')
     
     if pipeline == "CommandTemplates":
         return
 
+    #get all files priorities for this pipeline
+    priorities = getPriorities(pipeline)
+
+
+    # todo: this is the code that decides which queue to process, needs work
     # get pipeline queues
     # todo: this is the code that decides which queue to process, needs work
     queues = r.smembers(pipeline+'_queue')
+
+    pipeRreturn = RET_NO_WORK
+
+    # process first queue with high priority files
+    for q in queues:
+        fqs = r.lrange(pipeline + "_queue_" + q, 0, -1)
+        for fq in fqs:
+            if fq in priorities['high']:
+                pipeRreturn = generic_stage(pipeline, q)
+                break
+
+    #if pipeline != r.hget(HOSTNAME, 'pipeline') or pipeRreturn is not RET_OK:
+    #    return
+
+    # grab amount based
     for q in queues:
         cnt = r.get(pipeline+'_queue_files_'+q)
         if cnt is None:
             cnt = 0
         if cnt >= MAX_CPU:
             if r.llen(pipeline+"_queue_"+q) >= int(eval(r.get(pipeline+'_queue_files_'+q))):
-                generic_stage(pipeline, q)
+                pipeRreturn = generic_stage(pipeline, q)
 
+    #if pipeline != r.hget(HOSTNAME, 'pipeline') or pipeRreturn is not RET_OK:
+    #    return
+
+    # first come first serve
     for q in queues:
-        generic_stage(pipeline, q)
+        pipeRreturn = generic_stage(pipeline, q)
 
 #############################################################
 def anounce():
@@ -281,8 +322,7 @@ def anounce():
 #############################################################
 def signal_handler(signal, frame):
     for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
-        #set_file_info(qfile, STAGE, start, datetime.now(), '!!REVERT!!')
-        set_file_info_new(qfile, None, STAGE, '', start, datetime.now(), '!!REVERT!!')
+        set_file_info(qfile, None, STAGE, '', '', start, datetime.now(), '!!REVERT!!')
         r.rpush(STAGE, qfile)
     cleanup()
     sys.exit(0)

@@ -321,10 +321,10 @@ def prune_log():
     db = server.get_or_create_db(COUCHDB_DB)
     Log.set_db(db)
 
-    logs = Log.view('Logs/large')
-
-    for logEntry in logs:
-        print logEntry.doc_type
+    LogEntries = Log.view(view_name="logs/large")
+    print LogEntries.count()
+    #for LogEntry in LogEntries:
+    db.delete_attachment(doc=LogEntries.first(), name='logfile')
 
 ##################################################################
 def set_file_info(fq, logfilename, stage, cmdver, cmd, start, end, err=0):
@@ -357,7 +357,30 @@ def set_file_info(fq, logfilename, stage, cmdver, cmd, start, end, err=0):
             with open(logfilename, "r") as myfile:
                 logEntry.put_attachment(myfile, "logfile")
         else:
-            logEntry.put_attachment(logfilename, "logfile")            
+            logEntry.put_attachment(logfilename, "logfile")
+
+##################################################################
+def getPriorities(pipeline):
+    hq = []
+    mq = []
+    lq = []
+
+    r = get_client()
+
+    queues = r.smembers(pipeline+'_queue')
+    for queue in queues:
+        fqs = r.lrange(pipeline + "_queue_" + queue, 0, -1)
+        for fq in fqs:
+            pri = r.hget('finfo_' + fq, 'priority')
+            if pri == "10":
+                lq.append(fq)
+            if pri is None or pri == "5":
+                mq.append(fq)
+            if pri == "1":
+                hq.append(fq)
+
+    return dict(high=hq, mid=mq, low=lq)
+
 
 ##################################################################
 def import_demux(stage, fq):
