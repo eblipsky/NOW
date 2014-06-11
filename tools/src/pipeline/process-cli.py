@@ -3,7 +3,7 @@ import signal
 
 DEBUG = False
 
-CLIENT_VER = '0.0.20'
+CLIENT_VER = '0.0.21'
 
 r = None
 STAGE = ''
