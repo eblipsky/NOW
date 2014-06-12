@@ -42,12 +42,14 @@ def Main():
         if sys.argv[2]=='all':
             node_stop_all()
         else:
-            node_stop(int(sys.argv[2]))
+            for n in range(2, len(sys.argv)):
+                node_stop(int(sys.argv[n]))
     elif sys.argv[1] == 'startnode':
         if (sys.argv[2]=='all'):
             node_start_all()
         else:
-            node_start(int(sys.argv[2]))
+            for n in range(2, len(sys.argv)):
+                node_start(int(sys.argv[n]))
     elif sys.argv[1] == 'import':
         import_files(sys.argv[2])
     else:
