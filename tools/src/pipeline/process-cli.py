@@ -3,7 +3,7 @@ import signal
 
 DEBUG = False
 
-CLIENT_VER = '0.0.20'
+CLIENT_VER = '0.0.21'
 
 r = None
 STAGE = ''
@@ -138,6 +138,7 @@ def generic_stage(pipeline, queue):
                 #sys.stderr.write('====== pri-grabbing '+str(qfile)+' from '+str(STAGE)+'=======\n')
                 r.rpush(HOSTNAME+'_files', qfile)
                 set_batch_info(qfile, HOSTNAME, queue, pipeline, 'processing')
+                break
 
     qfile = ''
     while qfile is not None and r.llen(HOSTNAME+'_files') < int(STAGE_CPU):
