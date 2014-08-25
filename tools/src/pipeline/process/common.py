@@ -322,9 +322,15 @@ def prune_log():
     Log.set_db(db)
 
     LogEntries = Log.view(view_name="logs/large")
-    print LogEntries.count()
-    #for LogEntry in LogEntries:
-    db.delete_attachment(doc=LogEntries.first(), name='logfile')
+    total = LogEntries.count()
+
+    for x in xrange(total):
+        LogEntries = Log.view(view_name="logs/large")
+        print LogEntries.count()
+        try:
+            db.delete_attachment(doc=LogEntries.first(), name='logfile')
+        except:
+            pass
 
 ##################################################################
 def set_file_info(fq, logfilename, stage, cmdver, cmd, start, end, err=0):
