@@ -12,11 +12,13 @@ start = datetime.now()
 ###########################################################
 def generic_stage(pipeline, queue):
 
+    # ToDo: alot of this code needs to be broken out into functions
+
     global STAGE
     global start
 
     # todo: move this to redis and edit on web portal and maybe make per pipeline / batch options
-    email_to = 'eblipsky@geisinger.edu'
+    email_to = EMAIL 
     email_body = ''
     
     # clear the files from my internal store
@@ -194,7 +196,7 @@ def generic_stage(pipeline, queue):
         logfilenames = []
         for idx, cmd in enumerate(commands):
 
-            logdir = BASE_DIR+'/log/'+HOSTNAME+'/'+STAGE
+            logdir = LOG_DIR+'/'+HOSTNAME+'/'+STAGE
             logfilename = logdir+'/'+qfiles[idx]+'_'+start.strftime(DATE_FMT_FILE)+'.log'
 
             if not os.path.exists(logdir):
@@ -321,6 +323,23 @@ def anounce():
     r.hset(HOSTNAME, 'ver', CLIENT_VER)
 
 #############################################################
+def check_settings():
+    global BASE_DIR
+    global REF_DIR
+    global DATA_DIR
+    global STAT_DIR
+    global LOG_DIR
+    global EMAIL
+
+    EMAIL = r.hget('SystemSettings', 'EMAIL')
+    BASE_DIR = r.hget('SystemSettings', 'BASE_DIR')
+    REF_DIR = BASE_DIR + "/ref"
+    DATA_DIR = BASE_DIR + "/data"
+    STAT_DIR = BASE_DIR + "/stats"
+    LOG_DIR = BASE_DIR + "/log"
+    WORK_DIR = DATA_DIR + "/" + HOSTNAME
+
+#############################################################
 def signal_handler(signal, frame):
     for qfile in r.lrange(HOSTNAME+'_files', 0, -1):
         set_file_info(qfile, None, STAGE, '', '', start, datetime.now(), '!!REVERT!!')
@@ -336,6 +355,8 @@ def Main():
     anounce()
 
     while bool(r.get('working')):
+        check_settings()
+        # we need to do something here for the first run of a pipeline to setup the folders....
         process_pipeline()
         anounce()
         time.sleep(5)

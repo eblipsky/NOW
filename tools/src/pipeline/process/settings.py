@@ -10,11 +10,17 @@ import traceback
 import socket
 import redis
 import json
+import uuid
+import shutil
 from subprocess import Popen, PIPE
 from couchdbkit import *
 
 # this is user set
-BASE_DIR = '/opt/NOW'
+BASE_DIR = '/opt/NOW' 
+
+
+
+EMAIL = ''
 
 HAS_NODES = False #false is for single computer environment
 NODE_BASE_NAME = socket.gethostname()
@@ -41,14 +47,17 @@ RET_OK = 0
 RET_NO_WORK = -1
 RET_ERROR = 1
 
-REF_DIR = BASE_DIR + "/ref"
-DATA_DIR = BASE_DIR + "/data"
-STAT_DIR = BASE_DIR + "/stats"
-LOG_DIR = BASE_DIR + "/log"
+REF_DIR = ''
+DATA_DIR = BASE_DIR + '/data' 
+STAT_DIR = ''
+LOG_DIR = BASE_DIR + '/log' 
 HOSTNAME = socket.gethostname()
-WORK_DIR = BASE_DIR + "/data/" + HOSTNAME
+WORK_DIR = '' 
 SCRIPT_CLI = BASE_DIR + '/tools/src/pipeline/process-cli.py'
-USERNAME = os.getlogin()
+try:
+    USERNAME = os.getlogin()
+except:
+    USERNAME = "???"
 PASS = ""
 
 server_process = []

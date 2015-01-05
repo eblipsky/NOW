@@ -84,19 +84,22 @@ def cmd_parse(pipeline, cmd, fq):
 
     # replace all %fq% with DATA_DIR+fq and make dir if it doesnt exist
     while '%fq%' in cmd:
+        # get fq guid
+        guid = r.hget('imported_files', fq)
         spos = cmd.find('%fq%')
         epos = spos + len('%fq%')
-        if not os.path.exists(DATA_DIR + '/' + fq):
-            os.makedirs(DATA_DIR + '/' + fq)
+        if not os.path.exists(DATA_DIR + '/' + guid):
+            os.makedirs(DATA_DIR + '/' + guid)
+            shutil.copyfile(DATA_DIR + '/' + fq, DATA_DIR + '/' + guid + '/' + fq)
 
         # lets move all the files related to fq into this dir now
-        for file in os.listdir(DATA_DIR):
-            if os.path.isfile(DATA_DIR+"/"+file):
-                # need to make sure startwith does the whole match to the next dot
-                if file.startswith(fq+".") or file.startswith(fq+"_1.") or file.startswith(fq+"_2."):
-                    os.rename(DATA_DIR + '/' + file, DATA_DIR + '/' + fq + '/' + file)
+        #for file in os.listdir(DATA_DIR):
+        #    if os.path.isfile(DATA_DIR+"/"+file):
+        #        # need to make sure startwith does the whole match to the next dot
+        #        if file.startswith(fq+".") or file.startswith(fq+"_1.") or file.startswith(fq+"_2."):
+        #            os.rename(DATA_DIR + '/' + file, DATA_DIR + '/' + fq + '/' + file)
 
-        cmd = cmd[:spos] + DATA_DIR + '/' + fq + '/' + fq + cmd[epos:]
+        cmd = cmd[:spos] + DATA_DIR + '/' + guid + '/' + fq + cmd[epos:]
 
     # replace globals
     vars = r.hkeys('gvars')

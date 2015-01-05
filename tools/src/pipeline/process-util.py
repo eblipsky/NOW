@@ -51,7 +51,8 @@ def Main():
             for n in range(2, len(sys.argv)):
                 node_start(int(sys.argv[n]))
     elif sys.argv[1] == 'import':
-        import_files(sys.argv[2])
+        #import_files(sys.argv[2])
+        import_files()
     else:
         print HELP
         exit(1)
